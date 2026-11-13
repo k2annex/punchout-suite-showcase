@@ -7,7 +7,7 @@ Three tools for testing supplier-side procurement integrations end to end: **cXM
 | Tool | What it is | Live |
 |---|---|---|
 | **Punchout Headquarters** | Buyer-side tester for cXML punchout, SAP OCI, and cXML orders | [punchout-tool-suite.vercel.app](https://punchout-tool-suite.vercel.app) |
-| **Punchout Supply** | Magento 2 / Mage-OS extension that turns a store into a punchout supplier | Demo store (screenshots below) |
+| **Punchout Supply** | Magento 2 / Mage-OS extension that turns a store into a punchout supplier | [129-80-49-224.sslip.io](https://129-80-49-224.sslip.io) |
 | **Punchout Procure** | Mock Coupa, SAP Ariba, and SAP S/4HANA buyer that runs full procure-to-pay | [punchout-procure.vercel.app](https://punchout-procure.vercel.app) |
 
 ## Why I built it
@@ -55,7 +55,7 @@ The cXML tester. Basic mode builds the request from a form; advanced mode edits 
 
 ## Punchout Supply
 
-A Magento 2 / Mage-OS extension (`PunchoutGateway_Supplier`) that makes any store a punchout supplier.
+A Magento 2 / Mage-OS extension (`PunchoutGateway_Supplier`) that makes any store a punchout supplier. The demo store runs in production mode on an Oracle Cloud server: [129-80-49-224.sslip.io](https://129-80-49-224.sslip.io).
 
 - Buyers punch in from Coupa, Ariba, or SAP over cXML or OCI
 - Contract pricing per buyer, cart sent back to their system
@@ -78,7 +78,7 @@ Per-buyer cXML credentials and OCI logins. Shared secrets are stored encrypted a
 
 ![Buyer setup](images/supply-buyer-setup.png)
 
-**Stack:** PHP, Magento 2 / Mage-OS, Hyvä
+**Stack:** PHP, Magento 2 / Mage-OS, Hyvä, Oracle Cloud (Ubuntu, arm64)
 
 ---
 
