@@ -1,25 +1,31 @@
-# Punchout Suite
+# Punchout HQ
 
-Three tools for testing supplier-side procurement integrations end to end: **cXML and SAP OCI punchout**, purchase orders, ship notices, invoices, and payment. One tool plays the buyer, one plays the supplier, and one acts as a full Coupa, Ariba, or SAP procurement system.
+A punchout platform for **any store and any procurement system**: cXML and SAP OCI punchout, purchase orders, confirmations, ship notices, invoices, credit memos, and payment. It has free testing tools anyone can use, two full sandboxes (one plays the buyer, one plays the supplier), and a Readiness Check service that tests a supplier's store against their buyer's system before go-live.
 
-> **Source code is private.** This repo is a showcase of what the tools do. Happy to walk through the code or the architecture on a call.
+> **Source code is private.** This repo is a showcase of what the platform does. Happy to walk through the code or the architecture on a call.
 
-| Tool | What it is | Live |
+| Part | What it is | Where |
 |---|---|---|
-| **Punchout Headquarters** | Buyer-side tester for cXML punchout, SAP OCI, and cXML orders | [punchouthq.com](https://punchouthq.com) |
-| **Punchout Supply** | Magento 2 / Mage-OS extension that turns a store into a punchout supplier | [supply.punchouthq.com](https://supply.punchouthq.com) |
-| **Punchout Procure** | Mock Coupa, SAP Ariba, and SAP S/4HANA buyer that runs full procure-to-pay | [procure.punchouthq.com](https://procure.punchouthq.com) |
+| **Punchout HQ** | Landing page: services, connectors, custom integrations | [punchouthq.com](https://punchouthq.com) |
+| **Free Tools** | cXML PunchOut, OCI RoundTrip, and cXML Order testers. No sign-up | [tools.punchouthq.com](https://tools.punchouthq.com) |
+| **Punchout Procure** | Mock buyer procurement system. Bring your own store and run procure-to-pay end to end | [overview](https://punchouthq.com/procure) · [sandbox](https://procure.punchouthq.com) |
+| **Punchout Supply** | Mage-OS / Magento 2 extension that turns a store into a punchout supplier | [overview](https://punchouthq.com/supply) · [sandbox](https://supply.punchouthq.com) |
+| **Readiness Check** | Fixed-price test of a store against the buyer's system, with a pass/fail report | [book one](https://punchouthq.com/readiness-check) |
+
+The sandboxes are open by request: each overview page has a request-access form.
+
+![Punchout HQ landing page](images/hq-landing.png)
 
 ## Why I built it
 
-Suppliers usually can't test a punchout connection until a customer's procurement team is ready, and when something breaks, the error is buried in someone else's system. These tools let a supplier run every step on their own schedule and see the raw message behind each one.
+Suppliers usually can't test a punchout connection until a customer's procurement team is ready, and when something breaks, the error is buried in someone else's system. Punchout HQ lets a supplier run every step on their own schedule, against the rules of the system their buyer actually uses, and see the raw message behind each one.
 
 ## How the pieces fit
 
 ```mermaid
 sequenceDiagram
-    participant B as Buyer (Procure / Headquarters)
-    participant S as Supplier store (Punchout Supply)
+    participant B as Buyer (Procure / Free Tools)
+    participant S as Supplier store (Punchout Supply or yours)
     B->>S: PunchOutSetupRequest (cXML) or OCI login
     S-->>B: Start page URL
     Note over S: Buyer shops with contract pricing
@@ -35,11 +41,11 @@ sequenceDiagram
 
 ---
 
-## Punchout Headquarters
+## Free Tools
 
-Tests procurement connections from the buyer's side. Sends cXML PunchOutSetupRequests and SAP OCI launches, opens the supplier's catalog, and captures the returned cart. One click turns that cart into a cXML OrderRequest. A built-in mock supplier lets you run every flow without a live endpoint.
+Test a supplier's punchout from the buyer's side, with no account. Send a cXML PunchOutSetupRequest or an SAP OCI launch, shop the supplier's catalog, and capture the returned cart. One click turns that cart into a cXML OrderRequest. A built-in mock supplier lets you run every flow without a live endpoint.
 
-![Punchout Headquarters home](images/hq-home.png)
+![Free Tools](images/tools-home.png)
 
 A full punchout session: request, supplier response, and returned cart, with every message saved.
 
@@ -49,36 +55,13 @@ The cXML tester. Basic mode builds the request from a form; advanced mode edits 
 
 ![cXML tester](images/hq-cxml-tester.png)
 
-**Stack:** Node.js, Express, Vercel
+Built to be safe on the open internet:
 
----
+- Each browser gets its own private workspace; sessions and documents are encrypted (AES-256-GCM) and deleted after 7 days
+- Outbound requests are checked against private and internal addresses, including after every redirect
+- Per-address rate limits; saved presets stay in the visitor's browser
 
-## Punchout Supply
-
-A Magento 2 / Mage-OS extension (`PunchoutGateway_Supplier`) that makes any store a punchout supplier. The demo store runs in production mode on an Oracle Cloud server: [supply.punchouthq.com](https://supply.punchouthq.com).
-
-- Buyers punch in from Coupa, Ariba, or SAP over cXML or OCI
-- Contract pricing per buyer, cart sent back to their system
-- POs become real Magento orders
-- Confirmations, ship notices, invoices, and credit memos sent back as cXML
-- Per-buyer setup: encrypted shared secrets, UOM and UNSPSC mapping
-- Session timelines and logs of every message
-
-![Demo supplier store](images/supply-store.png)
-
-One PO from received to paid, with the cXML at each step.
-
-![Procure-to-pay](images/supply-procure-to-pay.png)
-
-Every punchout session is logged step by step with the raw message, so it's easy to see where it breaks.
-
-![Session timeline](images/supply-session-timeline.png)
-
-Per-buyer cXML credentials and OCI logins. Shared secrets are stored encrypted and never shown again.
-
-![Buyer setup](images/supply-buyer-setup.png)
-
-**Stack:** PHP, Magento 2 / Mage-OS, Hyvä, Oracle Cloud (Ubuntu, arm64)
+**Stack:** Node.js, Express, EJS, Redis, Vercel
 
 ---
 
@@ -86,7 +69,15 @@ Per-buyer cXML credentials and OCI logins. Shared secrets are stored encrypted a
 
 A mock procurement system that behaves like the buyer platforms suppliers have to work with. It runs the full cycle against a supplier store: punchout requisition, approval chain, cXML PO, confirmation, ship notice, invoice, goods receipt, three-way match with price tolerance, and payment.
 
-A Coupa PO from sent to paid, with the cXML for each step.
+**Bring your own store.** Add your store's endpoints and credentials, turn on the buyer environments your customers use, and run the cycle against your own system. Credentials are encrypted and never shown again; deleting a supplier deletes its data. Every user works in their own workspace.
+
+![Bring your own store](images/procure-supplier.webp)
+
+**Readiness checklist.** Everything the store has proven in each environment, built from the sessions, carts, orders, documents, and payments actually run.
+
+![Readiness checklist](images/procure-readiness.webp)
+
+A PO from sent to paid, with the cXML for each step.
 
 ![Order complete](images/procure-order-complete.png)
 
@@ -102,7 +93,7 @@ Three-way match catches an invoice billed before goods were received, with optio
 
 ![Three-way match](images/procure-three-way-match.png)
 
-Three buyer environments, each with its own rules: Coupa and SAP Ariba over cXML, SAP S/4HANA over OCI.
+Buyer environments, each with its own rules and protocol: Coupa and SAP Ariba over cXML, SAP S/4HANA over OCI.
 
 ![Environments](images/procure-environments.png)
 
@@ -110,6 +101,51 @@ Three buyer environments, each with its own rules: Coupa and SAP Ariba over cXML
 
 ---
 
+## Punchout Supply
+
+A Mage-OS / Magento 2 extension (`PunchoutGateway_Supplier`) that makes any store a punchout supplier. The demo store runs in production mode on an Oracle Cloud server: [supply.punchouthq.com](https://supply.punchouthq.com).
+
+- Buyers punch in from any procurement system over cXML or OCI
+- Shoppers from a buyer's system get a signed session pass, so they never hit a login page; the admin stays locked
+- Contract pricing per buyer, cart sent back to their system
+- POs become real orders
+- Confirmations, ship notices, invoices, and credit memos sent back as cXML
+- Per-buyer setup: encrypted shared secrets, UOM and UNSPSC mapping
+- Session timelines and logs of every message
+- A buyer readiness checklist for each connected buyer
+
+![Demo supplier store](images/supply-store.png)
+
+The buyer readiness checklist, built from that buyer's sessions and documents.
+
+![Buyer readiness](images/supply-readiness.webp)
+
+One PO from received to paid, with the cXML at each step.
+
+![Procure-to-pay](images/supply-procure-to-pay.png)
+
+Every punchout session is logged step by step with the raw message, so it's easy to see where it breaks.
+
+![Session timeline](images/supply-session-timeline.png)
+
+Per-buyer cXML credentials and OCI logins. Shared secrets are stored encrypted and never shown again.
+
+![Buyer setup](images/supply-buyer-setup.png)
+
+**Stack:** PHP, Mage-OS / Magento 2, Hyvä, Oracle Cloud (Ubuntu, arm64)
+
+---
+
+## Readiness Check
+
+A fixed-price service: I connect a supplier's store to Punchout Procure as their buyer's system will see it, run the whole cycle (punchout, cart return, orders, confirmations, ship notices, invoices, credit memos, payment), and deliver a report with every step marked pass or fail, the message that broke, and what to change.
+
+![Readiness Check](images/hq-readiness-check.png)
+
+[Book a Readiness Check](https://punchouthq.com/readiness-check)
+
+---
+
 ## About me
 
-I build supplier-side procurement integrations: punchout, catalogs, POs, and invoicing with Coupa, SAP Ariba, Oracle, and Zycus, plus the NetSuite scripting behind them. Available for consulting on Upwork.
+I build supplier-side procurement integrations for any procurement system: punchout, catalogs, POs, and invoicing over cXML, OCI, and EDI, delivered on Coupa, SAP Ariba, SAP S/4HANA, Oracle, and Zycus, plus the NetSuite scripting behind them. Available for consulting on Upwork, or email support@punchouthq.com.
