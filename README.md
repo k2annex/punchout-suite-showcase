@@ -1,6 +1,6 @@
 # Punchout HQ
 
-A punchout platform for **any store and any procurement system**: cXML and SAP OCI punchout, purchase orders, confirmations, ship notices, invoices, credit memos, and payment. It has free testing tools anyone can use, two full sandboxes (one plays the buyer, one plays the supplier), and a Readiness Check service that tests a supplier's store against their buyer's system before go-live.
+A punchout platform for **any store and any procurement system**: cXML and SAP OCI punchout, purchase orders, confirmations, ship notices, invoices, credit memos, and payment. It has free testing tools anyone can use, two full sandboxes (one plays the buyer, one plays the supplier), catalog classification that puts the right UNSPSC code on every SKU, and a Readiness Check service that tests a supplier's store against their buyer's system before go-live.
 
 > **Source code is private.** This repo is a showcase of what the platform does. Happy to walk through the code or the architecture on a call.
 
@@ -10,6 +10,7 @@ A punchout platform for **any store and any procurement system**: cXML and SAP O
 | **Free Tools** | cXML PunchOut, OCI RoundTrip, and cXML Order testers. No sign-up | [tools.punchouthq.com](https://tools.punchouthq.com) |
 | **Punchout Procure** | Mock buyer procurement system. Bring your own store and run procure-to-pay end to end | [overview](https://punchouthq.com/procure) · [sandbox](https://procure.punchouthq.com) |
 | **Punchout Supply** | Mage-OS / Magento 2 extension that turns a store into a punchout supplier | [overview](https://punchouthq.com/supply) · [sandbox](https://supply.punchouthq.com) |
+| **Punchout Classify** | UNSPSC classification for a whole catalog, fixing missing, too-broad and invalid codes. Free 25-SKU check | [punchouthq.com/classify](https://punchouthq.com/classify) |
 | **Readiness Check** | Fixed-price test of a store against the buyer's system, with a pass/fail report | [book one](https://punchouthq.com/readiness-check) |
 
 The sandboxes are open by request: each overview page has a request-access form.
@@ -136,6 +137,20 @@ Per-buyer cXML credentials and OCI logins. Shared secrets are stored encrypted a
 
 ---
 
+## Punchout Classify
+
+Buyer systems reject carts with missing or wrong commodity codes, and most supplier catalogs are full of them: blanks, one segment code stamped on everything, neighbouring codes picked by hand, and codes that were never valid. Punchout Classify matches every SKU to the most specific UNSPSC commodity, checks it against the current release, and flags anything it isn't sure about. With a Punchout connector the codes go straight into the cXML `<Classification domain="UNSPSC">` and OCI `NEW_ITEM-MATGROUP` fields buyers read.
+
+![Punchout Classify](images/classify-hero.png)
+
+An example run: codes filled in, corrected, or flagged for a look, with the confidence for each.
+
+![Classification run](images/classify-run.png)
+
+Anyone can send up to 25 products for a free check. A CSV is read in the browser, so only those rows are sent; requests are stored encrypted and land in the same review queue as sandbox access and Readiness Checks. Punchout Procure's readiness checklist points suppliers here when their cart lines are missing codes.
+
+---
+
 ## Readiness Check
 
 A fixed-price service: I connect a supplier's store to Punchout Procure as their buyer's system will see it, run the whole cycle (punchout, cart return, orders, confirmations, ship notices, invoices, credit memos, payment), and deliver a report with every step marked pass or fail, the message that broke, and what to change.
@@ -148,4 +163,4 @@ A fixed-price service: I connect a supplier's store to Punchout Procure as their
 
 ## About me
 
-I build supplier-side procurement integrations for any procurement system: punchout, catalogs, POs, and invoicing over cXML, OCI, and EDI, delivered on Coupa, SAP Ariba, SAP S/4HANA, Oracle, and Zycus, plus the NetSuite scripting behind them. Available for consulting on Upwork, or email support@punchouthq.com.
+I build supplier-side procurement integrations for any procurement system: punchout, catalogs and catalog classification, POs, and invoicing over cXML, OCI, and EDI, delivered on Coupa, SAP Ariba, SAP S/4HANA, Oracle, and Zycus, plus the NetSuite scripting behind them. Available for consulting on Upwork, or email support@punchouthq.com.
