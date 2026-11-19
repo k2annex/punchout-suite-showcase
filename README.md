@@ -10,7 +10,7 @@ A punchout platform for **any store and any procurement system**: cXML and SAP O
 | **Free Tools** | cXML PunchOut, OCI RoundTrip, and cXML Order testers. No sign-up | [tools.punchouthq.com](https://tools.punchouthq.com) |
 | **Punchout Procure** | Mock buyer procurement system. Bring your own store and run procure-to-pay end to end | [overview](https://punchouthq.com/procure) · [sandbox](https://procure.punchouthq.com) |
 | **Punchout Supply** | Mage-OS / Magento 2 extension that turns a store into a punchout supplier | [overview](https://punchouthq.com/supply) · [sandbox](https://supply.punchouthq.com) |
-| **Punchout Classify** | UNSPSC classification for a whole catalog, fixing missing, too-broad and invalid codes. Free 25-SKU check | [punchouthq.com/classify](https://punchouthq.com/classify) |
+| **Punchout Classify** | UNSPSC classification for a whole catalog, fixing missing, too-broad and invalid codes. Free 100-SKU check | [punchouthq.com/classify](https://punchouthq.com/classify) |
 | **Readiness Check** | Fixed-price test of a store against the buyer's system, with a pass/fail report | [book one](https://punchouthq.com/readiness-check) |
 
 The sandboxes are open by request: each overview page has a request-access form.
@@ -147,7 +147,17 @@ An example run: codes filled in, corrected, or flagged for a look, with the conf
 
 ![Classification run](images/classify-run.png)
 
-Anyone can send up to 25 products for a free check. A CSV is read in the browser, so only those rows are sent; requests are stored encrypted and land in the same review queue as sandbox access and Readiness Checks. Punchout Procure's readiness checklist points suppliers here when their cart lines are missing codes.
+Anyone can send up to 100 products for a free check. A CSV is read in the browser, so only those rows are sent; requests are stored encrypted and land in the same review queue as sandbox access and Readiness Checks. Punchout Procure's readiness checklist points suppliers here when their cart lines are missing codes.
+
+**How it classifies.** The matcher runs on the suite's own server, so product data never goes to an outside AI service and there is no per-SKU cost:
+
+- All 149,905 commodities in the current UNSPSC release (UNv260801) are embedded once by a small open-source language model (bge-small, run with ONNX on ARM CPUs)
+- Each product is cleaned of sizes, counts and model numbers, embedded the same way, and compared with every commodity; the closest matches are re-scored with keyword search (BM25) so exact terms count
+- An existing code is kept when it fits, replaced when it is invalid, too broad (a segment, family or class) or clearly wrong, and anything ambiguous is flagged with the other likely codes for a person to check
+- Results come back as a table in the review queue and a CSV with the code, commodity, confidence and a note for every SKU
+- Requests to the matcher are signed (HMAC) and nothing is written to disk
+
+**Stack:** Node.js, Transformers.js + ONNX Runtime, BM25, systemd + nginx on Oracle Cloud (arm64)
 
 ---
 
